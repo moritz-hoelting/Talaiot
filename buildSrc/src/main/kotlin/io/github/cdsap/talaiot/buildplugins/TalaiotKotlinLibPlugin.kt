@@ -32,10 +32,14 @@ class TalaiotKotlinLibPlugin : Plugin<Project> {
         target.setUpJunitPlatform()
         target.setUpKtlint()
 
+        val jvmTargetVersion = "11"
         target.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile::class.java).all {
             kotlinOptions {
-                jvmTarget = "11"
+                jvmTarget = jvmTargetVersion
             }
+        }
+        target.tasks.withType<org.gradle.api.tasks.compile.JavaCompile> {
+            targetCompatibility = jvmTargetVersion
         }
         target.setUpPublishing(Type.LIBRARY)
 
