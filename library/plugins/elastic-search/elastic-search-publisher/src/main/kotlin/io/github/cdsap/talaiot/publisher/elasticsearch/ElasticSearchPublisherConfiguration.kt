@@ -36,4 +36,14 @@ class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Seri
      * name to identify the build index measurement in Elasticsearch
      */
     var buildIndexName: String = "build"
+
+    /**
+     * optional username for authentication
+     */
+    var username: String = ""
+
+    /**
+     * optional password for authorization
+     */
+    var password: String = ""
 }

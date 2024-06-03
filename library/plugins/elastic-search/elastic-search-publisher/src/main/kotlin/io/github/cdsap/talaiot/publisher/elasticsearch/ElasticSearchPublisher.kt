@@ -70,6 +70,19 @@ class ElasticSearchPublisher(
                     "Please update your configuration"
             )
             return false
+        } else if (elasticSearchPublisherConfiguration.username.isEmpty() != elasticSearchPublisherConfiguration.password.isEmpty()) {
+            logTracker.error(
+                "ElasticSearchPublisher not executed. Configuration requires both username and password or none of them: \n" +
+                    "elasticSearchPublisher {\n" +
+                    "            url = \"http://localhost:8086\"\n" +
+                    "            buildIndexName = \"build\"\n" +
+                    "            taskIndexName = \"task\"\n" +
+                    "            username = \"username\"\n" +
+                    "            password = \"password\"\n" +
+                    "}\n" +
+                    "Please update your configuration"
+            )
+            return false
         }
         return true
     }
@@ -78,7 +91,7 @@ class ElasticSearchPublisher(
         val metrics = DefaultBuildMetricsProvider(report).get()
         val response = client.index(
             IndexRequest(elasticSearchPublisherConfiguration.buildIndexName).source(metrics),
-            RequestOptions.DEFAULT
+            applyAuthorization(RequestOptions.DEFAULT)
 
         )
         logTracker.log(TAG, "Result Build metrics $response")
@@ -94,7 +107,7 @@ class ElasticSearchPublisher(
                 val response = client.index(
                     IndexRequest(elasticSearchPublisherConfiguration.taskIndexName)
                         .source(DefaultTaskDataProvider(it, report).get()),
-                    RequestOptions.DEFAULT
+                    applyAuthorization(RequestOptions.DEFAULT)
                 )
                 logTracker.log(TAG, "Result Task metrics $response")
             } catch (e: java.lang.Exception) {
@@ -118,6 +131,32 @@ class ElasticSearchPublisher(
                     )
                 )
             RestHighLevelClient(restClientBuilder)
+        }
+    }
+
+    /**
+     * Apply Authorization header to the request
+     */
+    private fun applyAuthorization(options: RequestOptions): RequestOptions {
+        val credentials = getBase64Auth()
+        if (credentials != null) {
+            val optionsBuilder = options.toBuilder()
+            optionsBuilder.addHeader("Authorization", "Basic $credentials")
+            return optionsBuilder.build()
+        } else {
+            return options
+        }
+    }
+
+    /**
+     * Get the base64 encoded credentials
+     */
+    private fun getBase64Auth(): String? {
+        if (elasticSearchPublisherConfiguration.username.isEmpty() || elasticSearchPublisherConfiguration.password.isEmpty()) {
+            return null
+        } else {
+            val credentials = "${elasticSearchPublisherConfiguration.username}:${elasticSearchPublisherConfiguration.password}"
+            return java.util.Base64.getEncoder().encodeToString(credentials.toByteArray())
         }
     }
 }
