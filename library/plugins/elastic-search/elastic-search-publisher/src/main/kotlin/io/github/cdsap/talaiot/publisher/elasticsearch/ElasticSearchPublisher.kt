@@ -23,30 +23,30 @@ class ElasticSearchPublisher(
     private val logTracker: LogTracker
 ) : Publisher, java.io.Serializable {
 
-    private val TAG = "ElasticSearchPublisher"
+    private val tag = "ElasticSearchPublisher"
 
     override fun publish(report: ExecutionReport) {
         if (validate()) {
             val client = getClient()
-            logTracker.log(TAG, "================")
-            logTracker.log(TAG, "ElasticSearchPublisher")
+            logTracker.log(tag, "================")
+            logTracker.log(tag, "ElasticSearchPublisher")
             logTracker.log(
-                TAG,
+                tag,
                 "publishBuildMetrics: ${elasticSearchPublisherConfiguration.publishBuildMetrics}"
             )
             logTracker.log(
-                TAG,
+                tag,
                 "publishTaskMetrics: ${elasticSearchPublisherConfiguration.publishTaskMetrics}"
             )
-            logTracker.log(TAG, "================")
+            logTracker.log(tag, "================")
 
             try {
                 if (elasticSearchPublisherConfiguration.publishBuildMetrics) {
-                    logTracker.log(TAG, "Sending Build metrics")
+                    logTracker.log(tag, "Sending Build metrics")
                     sendBuildMetrics(report, client)
                 }
                 if (elasticSearchPublisherConfiguration.publishTaskMetrics) {
-                    logTracker.log(TAG, "Sending Task metrics")
+                    logTracker.log(tag, "Sending Task metrics")
                     sendTasksMetrics(report, client)
                 }
             } catch (e: Exception) {
@@ -92,16 +92,15 @@ class ElasticSearchPublisher(
         val response = client.index(
             IndexRequest(elasticSearchPublisherConfiguration.buildIndexName).source(metrics),
             applyAuthorization(RequestOptions.DEFAULT)
-
         )
-        logTracker.log(TAG, "Result Build metrics $response")
+        logTracker.log(tag, "Result Build metrics $response")
     }
 
     private fun sendTasksMetrics(
         report: ExecutionReport,
         client: RestHighLevelClient
     ) {
-        logTracker.log(TAG, "number of tasks report.tasks " + report.tasks?.size)
+        logTracker.log(tag, "number of tasks report.tasks " + report.tasks?.size)
         report.tasks?.forEach {
             try {
                 val response = client.index(
@@ -109,16 +108,19 @@ class ElasticSearchPublisher(
                         .source(DefaultTaskDataProvider(it, report).get()),
                     applyAuthorization(RequestOptions.DEFAULT)
                 )
-                logTracker.log(TAG, "Result Task metrics $response")
+                logTracker.log(tag, "Result Task metrics $response")
             } catch (e: java.lang.Exception) {
                 logTracker.error(e.message.toString())
             }
         }
     }
 
+    /**
+     * Get the RestHighLevelClient with the ElasticSearchPublisherConfiguration of this object applied
+     */
     private fun getClient(): RestHighLevelClient {
-        return if (elasticSearchPublisherConfiguration.url == "localhost") {
-            RestHighLevelClient(RestClient.builder(HttpHost("localhost")))
+        val clientBuilder = if (elasticSearchPublisherConfiguration.url == "localhost") {
+            RestClient.builder(HttpHost("localhost"))
         } else {
             val url = URL(elasticSearchPublisherConfiguration.url)
 
@@ -130,8 +132,12 @@ class ElasticSearchPublisher(
                         url.protocol
                     )
                 )
-            RestHighLevelClient(restClientBuilder)
+            restClientBuilder
         }
+        if (elasticSearchPublisherConfiguration.ignoreSslCertificates) {
+            clientBuilder.setHttpClientConfigCallback { httpClientBuilder -> httpClientBuilder.setSSLHostnameVerifier { _, _ -> true } }
+        }
+        return RestHighLevelClient(clientBuilder)
     }
 
     /**

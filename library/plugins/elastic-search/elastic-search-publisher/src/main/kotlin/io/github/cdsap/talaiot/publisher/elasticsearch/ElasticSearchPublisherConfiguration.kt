@@ -9,7 +9,9 @@ import io.github.cdsap.talaiot.configuration.PublisherConfiguration
  *    url = "url"
  *    taskIndexName = "task"
  *    buildIndexName = "build"
- *
+ *    username = "elastic-user"
+ *    password = "elastic-password"
+ *    ignoreSslCertificates = true
  * }
  */
 class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Serializable {
@@ -46,4 +48,9 @@ class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Seri
      * optional password for authorization
      */
     var password: String = ""
+
+    /**
+     * whether to check SSL certificates
+     */
+    var ignoreSslCertificates: Boolean = false
 }
