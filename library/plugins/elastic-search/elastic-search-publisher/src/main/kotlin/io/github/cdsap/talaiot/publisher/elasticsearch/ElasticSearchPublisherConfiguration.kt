@@ -12,6 +12,8 @@ import io.github.cdsap.talaiot.configuration.PublisherConfiguration
  *    username = "elastic-user"
  *    password = "elastic-password"
  *    ignoreSslCertificates = true
+ *    connectTimeout = 5000
+ *    socketTimeout = 60000
  * }
  */
 class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Serializable {
@@ -53,4 +55,14 @@ class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Seri
      * whether to check SSL certificates
      */
     var ignoreSslCertificates: Boolean = false
+
+    /**
+     * timeout for the connection in milliseconds (defaults to 1s)
+     */
+    val connectTimeout: Int? = null
+
+    /**
+     * timeout for the socket in milliseconds (defaults to 30s)
+     */
+    val socketTimeout: Int? = null
 }
