@@ -157,11 +157,13 @@ class ElasticSearchPublisher(
         }
         if (elasticSearchPublisherConfiguration.connectTimeout != null || elasticSearchPublisherConfiguration.socketTimeout != null) {
             clientBuilder.setRequestConfigCallback { requestConfigCallback ->
-                if (elasticSearchPublisherConfiguration.connectTimeout != null) {
-                    requestConfigCallback.setConnectTimeout(elasticSearchPublisherConfiguration.connectTimeout)
+                val connectTimeout = elasticSearchPublisherConfiguration.connectTimeout
+                if (connectTimeout != null) {
+                    requestConfigCallback.setConnectTimeout(connectTimeout)
                 }
-                if (elasticSearchPublisherConfiguration.socketTimeout != null) {
-                    requestConfigCallback.setSocketTimeout(elasticSearchPublisherConfiguration.socketTimeout)
+                val socketTimeout = elasticSearchPublisherConfiguration.socketTimeout
+                if (socketTimeout != null) {
+                    requestConfigCallback.setSocketTimeout(socketTimeout)
                 }
                 requestConfigCallback
             }

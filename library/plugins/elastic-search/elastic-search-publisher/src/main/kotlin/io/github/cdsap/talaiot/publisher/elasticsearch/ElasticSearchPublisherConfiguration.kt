@@ -59,10 +59,10 @@ class ElasticSearchPublisherConfiguration : PublisherConfiguration, java.io.Seri
     /**
      * timeout for the connection in milliseconds (defaults to 1s)
      */
-    val connectTimeout: Int? = null
+    var connectTimeout: Int? = null
 
     /**
      * timeout for the socket in milliseconds (defaults to 30s)
      */
-    val socketTimeout: Int? = null
+    var socketTimeout: Int? = null
 }
