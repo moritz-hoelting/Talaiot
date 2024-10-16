@@ -9,7 +9,11 @@ import io.github.cdsap.talaiot.configuration.PublisherConfiguration
  *    url = "url"
  *    taskIndexName = "task"
  *    buildIndexName = "build"
- *
+ *    username = "elastic-user"
+ *    password = "elastic-password"
+ *    ignoreSslCertificates = true
+ *    connectTimeout = 5000
+ *    socketTimeout = 60000
  * }
  */
 class ElasticSearchPublisherConfiguration : PublisherConfiguration {
@@ -34,4 +38,29 @@ class ElasticSearchPublisherConfiguration : PublisherConfiguration {
      * name to identify the build index measurement in Elasticsearch
      */
     var buildIndexName: String = "build"
+
+    /**
+     * optional username for authentication
+     */
+    var username: String = ""
+
+    /**
+     * optional password for authorization
+     */
+    var password: String = ""
+
+    /**
+     * whether to check SSL certificates
+     */
+    var ignoreSslCertificates: Boolean = false
+
+    /**
+     * timeout for the connection in milliseconds (defaults to 1s)
+     */
+    var connectTimeout: Int? = null
+
+    /**
+     * timeout for the socket in milliseconds (defaults to 30s)
+     */
+    var socketTimeout: Int? = null
 }

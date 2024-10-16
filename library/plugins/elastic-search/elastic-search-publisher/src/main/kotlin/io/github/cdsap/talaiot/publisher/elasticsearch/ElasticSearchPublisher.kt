@@ -6,6 +6,9 @@ import io.github.cdsap.talaiot.metrics.DefaultBuildMetricsProvider
 import io.github.cdsap.talaiot.metrics.DefaultTaskDataProvider
 import io.github.cdsap.talaiot.publisher.Publisher
 import org.apache.http.HttpHost
+import org.apache.http.auth.AuthScope
+import org.apache.http.auth.UsernamePasswordCredentials
+import org.apache.http.impl.client.BasicCredentialsProvider
 import org.elasticsearch.action.index.IndexRequest
 import org.elasticsearch.client.RequestOptions
 import org.elasticsearch.client.RestClient
@@ -78,6 +81,19 @@ class ElasticSearchPublisher(
                     "Please update your configuration"
             )
             return false
+        } else if (elasticSearchPublisherConfiguration.username.isEmpty() != elasticSearchPublisherConfiguration.password.isEmpty()) {
+            logTracker.error(
+                "ElasticSearchPublisher not executed. Configuration requires both username and password or none of them: \n" +
+                        "elasticSearchPublisher {\n" +
+                        "            url = \"http://localhost:8086\"\n" +
+                        "            buildIndexName = \"build\"\n" +
+                        "            taskIndexName = \"task\"\n" +
+                        "            username = \"username\"\n" +
+                        "            password = \"password\"\n" +
+                        "}\n" +
+                        "Please update your configuration"
+            )
+            return false
         }
         return true
     }
@@ -111,21 +127,64 @@ class ElasticSearchPublisher(
         }
     }
 
+    /**
+     * Get the RestHighLevelClient with the ElasticSearchPublisherConfiguration of this object applied
+     */
     private fun getClient(): RestHighLevelClient {
-        return if (elasticSearchPublisherConfiguration.url == "localhost") {
-            RestHighLevelClient(RestClient.builder(HttpHost("localhost")))
+        val clientBuilder = if (elasticSearchPublisherConfiguration.url == "localhost") {
+            RestClient.builder(HttpHost("localhost"))
         } else {
             val url = URL(elasticSearchPublisherConfiguration.url)
 
-            val restClientBuilder =
-                RestClient.builder(
-                    HttpHost(
-                        url.host,
-                        url.port,
-                        url.protocol
-                    )
+            RestClient.builder(
+                HttpHost(
+                    url.host,
+                    url.port,
+                    url.protocol
                 )
-            RestHighLevelClient(restClientBuilder)
+            )
         }
+
+        val defaultCredentialsProvider = if (elasticSearchPublisherConfiguration.username.isNotEmpty() && elasticSearchPublisherConfiguration.password.isNotEmpty()) {
+            val credentialsProvider = BasicCredentialsProvider()
+            credentialsProvider.setCredentials(
+                AuthScope.ANY,
+                UsernamePasswordCredentials(elasticSearchPublisherConfiguration.username, elasticSearchPublisherConfiguration.password)
+            )
+            credentialsProvider
+        } else {
+            null
+        }
+
+        if (defaultCredentialsProvider != null || elasticSearchPublisherConfiguration.ignoreSslCertificates) {
+            clientBuilder.setHttpClientConfigCallback { httpClientBuilder ->
+                val httpClientBuilder2 = if (defaultCredentialsProvider != null) {
+                    httpClientBuilder.setDefaultCredentialsProvider(defaultCredentialsProvider)
+                } else {
+                    httpClientBuilder
+                }
+
+                if (elasticSearchPublisherConfiguration.ignoreSslCertificates) {
+                    httpClientBuilder2.setSSLHostnameVerifier( { _, _ -> true } )
+                } else {
+                    httpClientBuilder2
+                }
+            }
+        }
+
+        if (elasticSearchPublisherConfiguration.connectTimeout != null || elasticSearchPublisherConfiguration.socketTimeout != null) {
+            clientBuilder.setRequestConfigCallback { requestConfigCallback ->
+                val connectTimeout = elasticSearchPublisherConfiguration.connectTimeout
+                if (connectTimeout != null) {
+                    requestConfigCallback.setConnectTimeout(connectTimeout)
+                }
+                val socketTimeout = elasticSearchPublisherConfiguration.socketTimeout
+                if (socketTimeout != null) {
+                    requestConfigCallback.setSocketTimeout(socketTimeout)
+                }
+                requestConfigCallback
+            }
+        }
+        return RestHighLevelClient(clientBuilder)
     }
 }

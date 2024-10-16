@@ -2,6 +2,8 @@ package io.github.cdsap.talaiot.buildplugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.tasks.Copy
 import org.gradle.kotlin.dsl.*
 import java.net.URI
 

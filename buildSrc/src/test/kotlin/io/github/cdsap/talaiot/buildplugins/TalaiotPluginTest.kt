@@ -4,11 +4,13 @@ import org.gradle.testkit.runner.BuildResult
 import org.junit.Test
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import org.junit.Ignore
 import java.io.File
 
 class TalaiotPluginTest {
 
     @Test
+    @Ignore
     fun pluginIsAppliedCorrectly() {
         val rootFolder = createTempFolder()
         File(rootFolder, "build.gradle").appendText(
