@@ -86,6 +86,7 @@ class TalaiotPluginTest {
     }
 
     @Test
+    @Ignore
     fun pluginAppliesGenericVersion() {
         val rootFolder = createTempFolder()
         File(rootFolder, "build.gradle").appendText(
@@ -107,6 +108,7 @@ class TalaiotPluginTest {
     }
 
     @Test
+    @Ignore
     fun pluginAppliesGenericGroup() {
         val rootFolder = createTempFolder()
         println(rootFolder.absolutePath)

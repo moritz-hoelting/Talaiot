@@ -12,9 +12,9 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31")
-    implementation("com.gradle.publish:plugin-publish-plugin:0.12.0")
-    implementation("org.jlleitschuh.gradle:ktlint-gradle:10.0.0")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
+    implementation("com.gradle.publish:plugin-publish-plugin:1.2.1")
+    implementation("org.jlleitschuh.gradle:ktlint-gradle:11.6.1")
     testImplementation("junit:junit:4.12")
 }
 
